@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/PolyAggregator" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
