@@ -28,6 +28,7 @@ from PyQt4.QtGui import *
 import concavehull
 from qgis.core import QgsMessageLog,QgsField,QgsGeometry
 from qgis.core import QgsMapLayerRegistry,QgsVectorLayer,QgsFeature,QgsVectorFileWriter
+from qgis.core import QgsMessageLog
 import qgis
 import os.path
 import time
@@ -288,15 +289,13 @@ class PolyAggregator:
             for flist in filteredbyarea:
                 filterdbydistance.append(filterdistance(flist, maximumdistance))
 
-            QgsMessageLog.logMessage(str(filterdbydistance),"message")
+            QgsMessageLog.logMessage(str(newlist), "Plugins", QgsMessageLog.INFO)
 
 
             srs = qgis.utils.iface.activeLayer().crs().authid()
             #srs = self.iface.mapCanvas().mapRenderer().destinationCrs().authid()
             layer = QgsVectorLayer('Polygon?crs=' + str(srs) + '&field=id:integer&field=count:integer',
                                    'newlayer', 'memory')
-
-
 
 
             hull_list = []
@@ -400,43 +399,3 @@ def head(filterdlist):
             if len(item) > 0 :
                 list.append([item[0][0],[el[1] for el in item]])
     return list
-
-def replace(alist):
-    for i in alist:
-        if len(i) != 0:
-            for r in i:
-                QgsMessageLog.logMessage(str(r),"message")
-                # #here replace the poly with the neighbors and own poly
-                # replace(r ,getneigh(r,i), i)
-                # #delete the poly and it neighbors
-                # delete(r,alist)
-
-
-
-
-
-
-def steping(lista):
-    final =[]
-    for item in lista:
-        for y in item:
-            final.extend(y[1])
-            final.extend(others(y[1],item))
-    return list(set(final))
-
-
-def others(poly, others):
-    neigh = []
-    for i in others:
-        if (i[0][0] == poly):
-            neigh =  [el[1] for el in i]
-
-
-def concave(poly):
-        # generate the hull geometry
-        # process points with prior clustering
-        hull_list = []
-            # process points without clustering
-        the_hull = concavehull.concave_hull(poly,3)
-        hull_list.append([concavehull.as_polygon(the_hull), len(poly)])
-        return hull_list
