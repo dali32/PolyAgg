@@ -284,19 +284,29 @@ class PolyAggregator:
             filterdbydistance  = []
             filterdbydistance.append(filterdistance(input, maximumdistance))
 
-
+            # QgsMessageLog.logMessage(str(filterdbydistance[0]), "aez")
 
             srs = qgis.utils.iface.activeLayer().crs().authid()
             #srs = self.iface.mapCanvas().mapRenderer().destinationCrs().authid()
             layer = QgsVectorLayer('Polygon?crs=' + str(srs) + '&field=id:integer&field=count:integer',
                                    'newlayer', 'memory')
 
+            #getting the list with biggest length
+            # aplatir the list
+
+            newList = []
+            for lis in filterdbydistance[0]:
+                aux = lis[1]
+                newList = aux.extend([lis[0]])
+                QgsMessageLog.logMessage(str(newList), "aez")
+                QgsMessageLog.logMessage(str(lis[0]), "aez")
+                QgsMessageLog.logMessage(str(lis[1]), "aez")
+                newList = []
 
 
-            QgsMessageLog.logMessage(str(filterdbydistance), "aez")
             hull_list = []
             geom = []
-            for polys in filterdbydistance:
+            for polys in filterdbydistance[0]:
                 geom = []
                 for feat in polys:
                     geom.extend(concavehull.extract_points(feat.geometry()))
@@ -367,7 +377,6 @@ def parcour(list):
     test = []
     for pol in list:
         l = []
-        QgsMessageLog.logMessage(str(pol), "aez")
         dpol = Polygon(concavehull.extract_points(pol.geometry()))
         for pol1 in list:
             dpol1 = Polygon(concavehull.extract_points(pol1.geometry()))
@@ -395,3 +404,13 @@ def head(filterdlist):
             if len(item) > 0 :
                 list.append([item[0][0],[el[1] for el in item]])
     return list
+
+def concave(poly):
+    # generate the hull geometry
+    # process points with prior clustering
+    hull_list = []
+     # process points without clustering
+    the_hull = concavehull.concave_hull(poly,3)
+    hull_list.append([concavehull.as_polygon(the_hull), len(poly)])
+    return hull_list 
+
