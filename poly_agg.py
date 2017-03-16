@@ -268,28 +268,22 @@ class PolyAggregator:
 
 
 
-
-
-            listoflists = []
+            list = []
             for feat in selectedLayer.getFeatures():
-                attrs = feat.attributes()
-                listoflists.append([feat,attrs[1]])
-
-
-
-            values = set(map(lambda x:x[1], listoflists))
-            newlist = [[y[0] for y in listoflists if y[1]==x] for x in values]
+                list.append(feat)
 
 
             filteredbyarea = []
-            for polyatt in newlist:
+            for polyatt in list:
                 filteredbyarea.append(filterarea(polyatt, minimumarea))
 
-            filterdbydistance  = []
-            for flist in filteredbyarea:
-                filterdbydistance.append(filterdistance(flist, maximumdistance))
 
-            QgsMessageLog.logMessage(str(newlist), "Plugins", QgsMessageLog.INFO)
+            input = [y for x in filteredbyarea for y in x]
+
+
+            filterdbydistance  = []
+            filterdbydistance.append(filterdistance(input, maximumdistance))
+
 
 
             srs = qgis.utils.iface.activeLayer().crs().authid()
@@ -298,6 +292,8 @@ class PolyAggregator:
                                    'newlayer', 'memory')
 
 
+
+            QgsMessageLog.logMessage(str(filterdbydistance), "aez")
             hull_list = []
             geom = []
             for polys in filterdbydistance:
@@ -344,7 +340,7 @@ class PolyAggregator:
             #     QgsMapLayerRegistry.instance().addMapLayer(layer_name)
             #     return None
 
-
+# QgsMessageLog.logMessage(str(tlist), "aez")
 
 
 def toarrayofpoints(corners):
@@ -354,12 +350,11 @@ def toarrayofpoints(corners):
                     return list
 
 
-def filterarea(tlist, minarea):
+def filterarea(feat, minarea):
     list1 = []
-    for feat in tlist:
-        area = feat.geometry().area() * 10000
-        if area >= minarea:
-            list1.append(feat)
+    area = feat.geometry().area() * 10000
+    if area >= minarea:
+        list1.append(feat)
     return list1
 
 
@@ -367,13 +362,14 @@ def filterdistance(tlist ,maxdist):
     return head(filterpolsdist(parcour(tlist),maxdist))
 
 
-def parcour(lista):
+def parcour(list):
     polys = []
     test = []
-    for pol in lista:
+    for pol in list:
         l = []
+        QgsMessageLog.logMessage(str(pol), "aez")
         dpol = Polygon(concavehull.extract_points(pol.geometry()))
-        for pol1 in lista:
+        for pol1 in list:
             dpol1 = Polygon(concavehull.extract_points(pol1.geometry()))
             dist = dpol.distance(dpol1) * 100
             l.append([pol,pol1,dist])
