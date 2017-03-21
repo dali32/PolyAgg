@@ -293,24 +293,27 @@ class PolyAggregator:
 
             #getting the list with biggest length
             # aplatir the list
-
+            hull_list = []
             newList = []
+            nl = []
+            aux = []
             for lis in filterdbydistance[0]:
                 aux = lis[1]
-                newList = aux.extend([lis[0]])
-                QgsMessageLog.logMessage(str(newList), "aez")
-                QgsMessageLog.logMessage(str(lis[0]), "aez")
-                QgsMessageLog.logMessage(str(lis[1]), "aez")
-                newList = []
+                geom.extend(concavehull.extract_points(lis[0].geometry()))
+                for i in aux:
+                    geom.extend(concavehull.extract_points(i.geometry()))
+                hull_list.append(concave(geom))
 
 
-            hull_list = []
-            geom = []
-            for polys in filterdbydistance[0]:
-                geom = []
-                for feat in polys:
-                    geom.extend(concavehull.extract_points(feat.geometry()))
-                    hull_list.append(concave(geom))
+            QgsMessageLog.logMessage(str(hull_list), "done")
+
+            # hull_list = []
+            # geom = []
+            # for polys in filterdbydistance[0]:
+            #     geom = []
+            #     for feat in polys:
+            #         geom.extend(concavehull.extract_points(feat.geometry()))
+            #         hull_list.append(concave(geom))
 
 
 
