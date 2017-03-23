@@ -291,6 +291,10 @@ class PolyAggregator:
             layer = QgsVectorLayer('Polygon?crs=' + str(srs) + '&field=id:integer&field=count:integer',
                                    'newlayer', 'memory')
 
+
+
+            QgsMessageLog.logMessage(str(input), "done")
+
             #getting the list with biggest length
             # aplatir the list
             hull_list = []
@@ -304,8 +308,9 @@ class PolyAggregator:
                     geom.extend(concavehull.extract_points(i.geometry()))
                 hull_list.append(concave(geom))
 
+            # QgsMessageLog.logMessage(str(hull_list), "done")
 
-            QgsMessageLog.logMessage(str(hull_list), "done")
+            
 
             # hull_list = []
             # geom = []
@@ -328,6 +333,8 @@ class PolyAggregator:
                         feature.setAttributes([fid, z[1]])
                         fid += 1
                     provider.addFeatures([feature])
+            for i in input:
+                provider.addFeatures([i])
             QgsVectorFileWriter.writeAsVectorFormat(layer, outputshp, str(srs), None, 'ESRI Shapefile')
             base_name = os.path.splitext(os.path.basename(str(outputshp)))[0]
             layer_name = QgsVectorLayer(outputshp, base_name, 'ogr')
