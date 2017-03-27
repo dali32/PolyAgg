@@ -228,7 +228,7 @@ class PolyAggregator:
         layers = self.iface.legendInterface().layers()
         self.dlg.comboBox.clear()
         for layer in layers:
-		        layer_list.append(layer.name())
+                layer_list.append(layer.name())
 
         self.dlg.comboBox.addItems(layer_list)
         limit = self.dlg.lineEdit_2.text()
@@ -293,7 +293,7 @@ class PolyAggregator:
 
 
 
-            QgsMessageLog.logMessage(str(input), "done")
+            
 
             #getting the list with biggest length
             # aplatir the list
@@ -307,7 +307,7 @@ class PolyAggregator:
                 for i in aux:
                     geom.extend(concavehull.extract_points(i.geometry()))
                 hull_list.append(concave(geom))
-
+                geom = []
             # QgsMessageLog.logMessage(str(hull_list), "done")
 
             
