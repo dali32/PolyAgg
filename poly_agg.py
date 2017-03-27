@@ -292,7 +292,16 @@ class PolyAggregator:
                                    'newlayer', 'memory')
 
 
+            newinput = []
+            for j in filterdbydistance[0]:
+                newinput.extend([j[0]])
 
+            QgsMessageLog.logMessage(str( set(input) - set(newinput)), "done")
+            lista = set(input) - set(newinput)
+
+
+
+            
             
 
             #getting the list with biggest length
@@ -308,7 +317,7 @@ class PolyAggregator:
                     geom.extend(concavehull.extract_points(i.geometry()))
                 hull_list.append(concave(geom))
                 geom = []
-            # QgsMessageLog.logMessage(str(hull_list), "done")
+            
 
             
 
@@ -333,7 +342,7 @@ class PolyAggregator:
                         feature.setAttributes([fid, z[1]])
                         fid += 1
                     provider.addFeatures([feature])
-            for i in input:
+            for i in lista:
                 provider.addFeatures([i])
             QgsVectorFileWriter.writeAsVectorFormat(layer, outputshp, str(srs), None, 'ESRI Shapefile')
             base_name = os.path.splitext(os.path.basename(str(outputshp)))[0]
