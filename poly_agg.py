@@ -19,7 +19,11 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+
+
+# this quadtree enables the map features to be aggregated based on their georgraphical situation.
 """
+import pyqtree
 from osgeo import gdal
 import os
 from osgeo import ogr,osr
