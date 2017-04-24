@@ -46,6 +46,7 @@ import shapely.ops as ops
 from shapely.geometry.polygon import Polygon
 from functools import partial
 from pyproj import transform
+from pyqtree import Index
 
 # Import the code for the dialog
 from poly_agg_dialog import PolyAggregatorDialog
@@ -265,17 +266,18 @@ class PolyAggregator:
             #out_ds = driver.CreateDataSource(outputshp)
             #out_lyr = out_ds.CreateLayer('poly', geom_type=ogr.wkbPolygon)
 
-
             geom=[]
             polys = []
             landtypes = []
-
-
 
             list = []
             for feat in selectedLayer.getFeatures():
                 list.append(feat)
 
+            # list of all polygons, we will put the centroids coordinates in a quadtree
+            
+            for i in list:
+                QgsMessageLog.logMessage(str(i.geometry().centroid().asPoint()), "aez")
 
             filteredbyarea = []
             for polyatt in list:
@@ -300,13 +302,9 @@ class PolyAggregator:
             for j in filterdbydistance[0]:
                 newinput.extend([j[0]])
 
-            QgsMessageLog.logMessage(str( set(input) - set(newinput)), "done")
+
             lista = set(input) - set(newinput)
 
-
-
-            
-            
 
             #getting the list with biggest length
             # aplatir the list
@@ -322,8 +320,11 @@ class PolyAggregator:
                 hull_list.append(concave(geom))
                 geom = []
             
-
             
+            # for i in hull_list          
+            #     filterdbydistance1  = []
+            #     filterdbydistance1.append(filterdistance(hull_list, maximumdistance))
+
 
             # hull_list = []
             # geom = []
