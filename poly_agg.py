@@ -276,8 +276,37 @@ class PolyAggregator:
 
             # list of all polygons, we will put the centroids coordinates in a quadtree
             
+            listofpols = []
             for i in list:
-                QgsMessageLog.logMessage(str(i.geometry().centroid().asPoint()), "aez")
+                listofpols.append(i.geometry().centroid().asPoint())
+
+            res_listx = []
+            res_listx = [x[0] for x in listofpols]
+            
+            res_listy = []
+            res_listy = [x[1] for x in listofpols]
+
+
+            max_valuex = max(res_listx)
+            min_valuex = min(res_listx)
+
+            max_valuey = max(res_listy)
+            min_valuey = min(res_listy)
+
+            QgsMessageLog.logMessage(str(max_valuex), "aez")
+            QgsMessageLog.logMessage(str(max_valuey), "aez")
+            QgsMessageLog.logMessage(str(min_valuex), "aez")
+            QgsMessageLog.logMessage(str(min_valuey), "aez")
+
+            spindex = Index(bbox=(min_valuex, min_valuey, max_valuex, max_valuey))
+
+            for i in list:
+                r = i.geometry().centroid().asPoint()
+                x = r[0]
+                y = r[1]
+                poly = Dataset(i,x,y)
+                spindex.insert(poly, poly.bbox)
+
 
             filteredbyarea = []
             for polyatt in list:
@@ -438,3 +467,7 @@ def concave(poly):
     hull_list.append([concavehull.as_polygon(the_hull), len(poly)])
     return hull_list 
 
+ class Dataset:
+    def __init__(self,poly,x,y):
+        self.item = poly
+        self.bbox = (x,y,x,y)
