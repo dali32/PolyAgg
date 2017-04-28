@@ -293,10 +293,6 @@ class PolyAggregator:
             max_valuey = max(res_listy)
             min_valuey = min(res_listy)
 
-            QgsMessageLog.logMessage(str(max_valuex), "aez")
-            QgsMessageLog.logMessage(str(max_valuey), "aez")
-            QgsMessageLog.logMessage(str(min_valuex), "aez")
-            QgsMessageLog.logMessage(str(min_valuey), "aez")
 
             spindex = Index(bbox=(min_valuex, min_valuey, max_valuex, max_valuey))
 
@@ -308,62 +304,19 @@ class PolyAggregator:
                 spindex.insert(poly, poly.bbox)
 
 
-            filteredbyarea = []
-            for polyatt in list:
-                filteredbyarea.append(filterarea(polyatt, minimumarea))
+            overlapbbox = (min_valuex, min_valuey, max_valuex, max_valuey)
+            matches = spindex.intersect(overlapbbox)
 
+            gather = []
+            for item in matches:
+                gather.append(item.item)
 
-            input = [y for x in filteredbyarea for y in x]
-
-
-            filterdbydistance  = []
-            filterdbydistance.append(filterdistance(input, maximumdistance))
-
-            # QgsMessageLog.logMessage(str(filterdbydistance[0]), "aez")
+            hull_list = worker(gather)
 
             srs = qgis.utils.iface.activeLayer().crs().authid()
             #srs = self.iface.mapCanvas().mapRenderer().destinationCrs().authid()
             layer = QgsVectorLayer('Polygon?crs=' + str(srs) + '&field=id:integer&field=count:integer',
-                                   'newlayer', 'memory')
-
-
-            newinput = []
-            for j in filterdbydistance[0]:
-                newinput.extend([j[0]])
-
-
-            lista = set(input) - set(newinput)
-
-
-            #getting the list with biggest length
-            # aplatir the list
-            hull_list = []
-            newList = []
-            nl = []
-            aux = []
-            for lis in filterdbydistance[0]:
-                aux = lis[1]
-                geom.extend(concavehull.extract_points(lis[0].geometry()))
-                for i in aux:
-                    geom.extend(concavehull.extract_points(i.geometry()))
-                hull_list.append(concave(geom))
-                geom = []
-            
-            
-            # for i in hull_list          
-            #     filterdbydistance1  = []
-            #     filterdbydistance1.append(filterdistance(hull_list, maximumdistance))
-
-
-            # hull_list = []
-            # geom = []
-            # for polys in filterdbydistance[0]:
-            #     geom = []
-            #     for feat in polys:
-            #         geom.extend(concavehull.extract_points(feat.geometry()))
-            #         hull_list.append(concave(geom))
-
-
+                           'newlayer', 'memory')
 
             provider = layer.dataProvider()
             # add hull geometry to data provider
@@ -383,25 +336,6 @@ class PolyAggregator:
             layer_name = QgsVectorLayer(outputshp, base_name, 'ogr')
             QgsMapLayerRegistry.instance().addMapLayer(layer_name)
 
-
-
-            # num_points = len(nex)
-            # if (num_points == 0):
-            #     srs = qgis.utils.iface.activeLayer().crs().authid()
-            #     #srs = self.iface.mapCanvas().mapRenderer().destinationCrs().authid()
-            #     layer = QgsVectorLayer('Polygon?crs=' + str(srs) + '&field=id:integer&field=count:integer',
-            #                            'newlayer', 'memory')
-            #     provider = layer.dataProvider()
-            #
-            #     # add hull geometry to data provider
-            #     fid = 0
-            #     for feat in selectedLayer.getFeatures():
-            #             provider.addFeatures([feat])
-            #     QgsVectorFileWriter.writeAsVectorFormat(layer, outputshp, str(srs), None, 'ESRI Shapefile')
-            #     base_name = os.path.splitext(os.path.basename(str(outputshp)))[0]
-            #     layer_name = QgsVectorLayer(outputshp, base_name, 'ogr')
-            #     QgsMapLayerRegistry.instance().addMapLayer(layer_name)
-            #     return None
 
 # QgsMessageLog.logMessage(str(tlist), "aez")
 
@@ -467,7 +401,47 @@ def concave(poly):
     hull_list.append([concavehull.as_polygon(the_hull), len(poly)])
     return hull_list 
 
- class Dataset:
+def worker(list)
+    filteredbyarea = []
+    for polyatt in list:
+        filteredbyarea.append(filterarea(polyatt, minimumarea))
+
+    input = [y for x in filteredbyarea for y in x]
+
+    filterdbydistance  = []
+    filterdbydistance.append(filterdistance(input, maximumdistance))
+
+    newinput = []
+    for j in filterdbydistance[0]:
+        newinput.extend([j[0]])
+
+    lista = set(input) - set(newinput)
+
+    #getting the list with biggest length
+    # aplatir the list
+    hull_list = []
+    newList = []
+    nl = []
+    aux = []
+    for lis in filterdbydistance[0]:
+        aux = lis[1]
+        geom.extend(concavehull.extract_points(lis[0].geometry()))
+        for i in aux:
+            geom.extend(concavehull.extract_points(i.geometry()))
+        hull_list.append(concave(geom))
+        geom = []
+    
+    return hull_list
+
+
+
+
+class Dataset:
     def __init__(self,poly,x,y):
         self.item = poly
         self.bbox = (x,y,x,y)
+
+
+
+
+
