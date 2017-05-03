@@ -248,6 +248,11 @@ class PolyAggregator:
             minimumarea  = float(self.dlg.lineEdit_3.text())
             maximumdistance =  float(self.dlg.lineEdit_2.text())
 
+            minX  = float(self.dlg.lineEdit_4.text())
+            minY =  float(self.dlg.lineEdit_5.text())
+            maxX  = float(self.dlg.lineEdit_6.text())
+            maxY =  float(self.dlg.lineEdit_7.text())
+
 
             selectedLayerIndex = self.dlg.comboBox.currentIndex()
             selectedLayer = layers[selectedLayerIndex]
@@ -266,7 +271,6 @@ class PolyAggregator:
             #out_ds = driver.CreateDataSource(outputshp)
             #out_lyr = out_ds.CreateLayer('poly', geom_type=ogr.wkbPolygon)
 
-            geom=[]
             polys = []
             landtypes = []
 
@@ -303,15 +307,25 @@ class PolyAggregator:
                 poly = Dataset(i,x,y)
                 spindex.insert(poly, poly.bbox)
 
-
-            overlapbbox = (min_valuex, min_valuey, max_valuex, max_valuey)
+            overlapbbox = (minX, minY, maxX, maxY)
             matches = spindex.intersect(overlapbbox)
+
+            #QgsMessageLog.logMessage(str(matches), "aez")
 
             gather = []
             for item in matches:
                 gather.append(item.item)
 
-            hull_list = worker(gather)
+            lengthHull = 0
+            while True:
+                resultlist2 = worker(gather, minimumarea, maximumdistance)
+                lista =  resultlist2[0]
+                hull_list = resultlist2[1]
+                if lengthHull == len(hull_list):
+                    break
+                lengthHull = len(hull_list)
+
+
 
             srs = qgis.utils.iface.activeLayer().crs().authid()
             #srs = self.iface.mapCanvas().mapRenderer().destinationCrs().authid()
@@ -392,16 +406,40 @@ def head(filterdlist):
                 list.append([item[0][0],[el[1] for el in item]])
     return list
 
+def merge(listoflists):
+    
+    aux = []
+    length = 0 
+    l = []
+    lista = []
+    for i in range(5):
+        for dis in listoflists:
+            for dis1 in listoflists:
+                if (dis[0]) in (dis1[1]) and dis1 != dis:
+                    QgsMessageLog.logMessage(str(dis), "aez")
+                    QgsMessageLog.logMessage(str(dis1), "aez")
+                    index = listoflists.index(dis1)
+                    newdis = dis1[1]
+                    newdis.extend(dis[1])
+                    listoflists[index] = [dis1[0],list(set(newdis))]
+                    lista = listoflists
+                    QgsMessageLog.logMessage(str(listoflists)+" || "+str(dis) + "**", "aez")
+                    lista.remove(dis)
+                    length = len(lista) 
+                    listoflists = lista 
+    return listoflists
+
+
 def concave(poly):
     # generate the hull geometry
     # process points with prior clustering
     hull_list = []
      # process points without clustering
-    the_hull = concavehull.concave_hull(poly,3)
+    the_hull = concavehull.concave_hull(poly,13)
     hull_list.append([concavehull.as_polygon(the_hull), len(poly)])
     return hull_list 
 
-def worker(list)
+def worker(list, minimumarea, maximumdistance):
     filteredbyarea = []
     for polyatt in list:
         filteredbyarea.append(filterarea(polyatt, minimumarea))
@@ -414,24 +452,27 @@ def worker(list)
     newinput = []
     for j in filterdbydistance[0]:
         newinput.extend([j[0]])
-
     lista = set(input) - set(newinput)
+
 
     #getting the list with biggest length
     # aplatir the list
+    geom=[]
     hull_list = []
     newList = []
     nl = []
     aux = []
-    for lis in filterdbydistance[0]:
+    for lis in merge(filterdbydistance[0]):
         aux = lis[1]
         geom.extend(concavehull.extract_points(lis[0].geometry()))
         for i in aux:
             geom.extend(concavehull.extract_points(i.geometry()))
         hull_list.append(concave(geom))
         geom = []
+
+
     
-    return hull_list
+    return [lista, hull_list]
 
 
 
@@ -440,8 +481,3 @@ class Dataset:
     def __init__(self,poly,x,y):
         self.item = poly
         self.bbox = (x,y,x,y)
-
-
-
-
-
