@@ -427,6 +427,7 @@ def merge(listoflists):
                     lista.remove(dis)
                     length = len(lista) 
                     listoflists = lista 
+                    break
     return listoflists
 
 
@@ -435,7 +436,7 @@ def concave(poly):
     # process points with prior clustering
     hull_list = []
      # process points without clustering
-    the_hull = concavehull.concave_hull(poly,13)
+    the_hull = concavehull.concave_hull(poly,24)
     hull_list.append([concavehull.as_polygon(the_hull), len(poly)])
     return hull_list 
 
